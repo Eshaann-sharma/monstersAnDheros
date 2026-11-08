@@ -11,8 +11,6 @@ No external libraries are required.
 
 ## Run
 
-The project does not require a `run.sh` or `run.bat` file. Compile and launch it directly from the project folder using the commands below.
-
 ### macOS / Linux
 
 Open Terminal in the `MonstersAndHeroes` project folder and run:
