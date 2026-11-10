@@ -48,13 +48,10 @@ public class MarketManager {
         if (choice == 0) return;
         Item item = stock.get(choice - 1);
         if (item.getLevel() > hero.getLevel()) { System.out.println("Your level is too low for this item."); return; }
-<<<<<<< HEAD
         if (item instanceof monstersheroes.items.Weapon weapon && !weapon.canBeUsedBy(hero)) {
             System.out.println("This weapon is restricted to: " + weapon.getAllowedClassesDescription() + ".");
             return;
         }
-=======
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         if (!hero.spendGold(item.getPrice())) { System.out.println("Not enough gold."); return; }
         market.removeItem(item);
         hero.getInventory().addItem(item);

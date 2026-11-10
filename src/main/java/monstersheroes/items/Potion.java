@@ -16,7 +16,6 @@ public class Potion extends Item implements Consumable {
     public int getEffectAmount() { return effectAmount; }
     public StatType getStatType() { return statType; }
     public void applyTo(Hero hero) {
-<<<<<<< HEAD
         if (consumed) {
             throw new IllegalStateException(
                     "This potion has already been used."
@@ -58,12 +57,6 @@ public class Potion extends Item implements Consumable {
         };
     }
 
-=======
-        if (consumed) throw new IllegalStateException("This potion has already been used.");
-        hero.increaseStat(statType, effectAmount);
-        consume();
-    }
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     @Override public boolean isConsumed() { return consumed; }
     @Override public void consume() { consumed = true; consumeUse(); }
     @Override public String getDescription() { return "Increases " + statType + " by " + effectAmount; }
