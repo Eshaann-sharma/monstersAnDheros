@@ -1,3 +1,4 @@
 out/
 sources.txt
 *.class
+.DS_Store
