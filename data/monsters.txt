@@ -1,0 +1,5 @@
+# baseDamage,baseDefense,dodgeAbilityPercent
+# Final monster damage and defense scale with monster level.
+dragon=8,2,8
+exoskeleton=6,5,5
+spirit=7,1,18
