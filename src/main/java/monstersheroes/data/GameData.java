@@ -34,8 +34,12 @@ public class GameData {
 
         public Item createItem() {
             return switch (type) {
+<<<<<<< HEAD
                 case "WEAPON" -> new Weapon(name, price, level, value1, value2, uses,
                         extra.equals("-") ? java.util.Set.of() : java.util.Arrays.stream(extra.split(",")).map(String::trim).collect(java.util.stream.Collectors.toSet()));
+=======
+                case "WEAPON" -> new Weapon(name, price, level, value1, value2, uses);
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
                 case "ARMOR" -> new Armor(name, price, level, value1, uses);
                 case "POTION" -> new Potion(name, price, level, value1, StatType.valueOf(extra.toUpperCase(Locale.ROOT)));
                 case "SPELL" -> switch (extra.toUpperCase(Locale.ROOT)) {

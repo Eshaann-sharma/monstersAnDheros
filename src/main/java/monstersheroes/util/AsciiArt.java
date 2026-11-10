@@ -57,6 +57,7 @@ public final class AsciiArt {
         }
     }
 
+<<<<<<< HEAD
     /** Prints the supplied full-size portrait for a portal boss. */
     public static void printBoss(String bossName) {
         String file = switch (bossName.toLowerCase(java.util.Locale.ROOT)) {
@@ -73,6 +74,8 @@ public final class AsciiArt {
         }
     }
 
+=======
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     public static void printCriticalHit() {
         System.out.println("\n+---------------------------------------+");
         System.out.println("|             CRITICAL HIT!             |");

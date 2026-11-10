@@ -24,10 +24,13 @@ public class GameController {
     private final MarketManager marketManager = new MarketManager();
     private World world;
     private boolean running = true;
+<<<<<<< HEAD
     private boolean gameWon;
     private int depth;
     private final boolean[] bossChallenged = new boolean[3];
     private final boolean[] bossDefeated = new boolean[3];
+=======
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
 
     public GameController(InputHandler input, GameData data) {
         this.input = input; this.data = data;
@@ -36,13 +39,21 @@ public class GameController {
     public void start() {
         printTitle();
         createParty();
+<<<<<<< HEAD
         world = new World(8, data, random, depth);
+=======
+        world = new World(8, data, random);
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         System.out.println("\nYour party enters the world. Good luck, heroes!");
         world.printMap();
         printHelp();
 
         while (running && party.hasLivingHeroes()) {
+<<<<<<< HEAD
             char command = input.readCommand("\nCommand (W/A/S/D, I, V, E, P, M, R, T, H, Q): ");
+=======
+            char command = input.readCommand("\nCommand (W/A/S/D, I, V, E, P, M, T, H, Q): ");
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
             switch (command) {
                 case 'W' -> move(0, -1);
                 case 'A' -> move(-1, 0);
@@ -53,15 +64,22 @@ public class GameController {
                 case 'E' -> equipOutsideBattle();
                 case 'P' -> usePotionOutsideBattle();
                 case 'M' -> enterMarket();
+<<<<<<< HEAD
                 case 'R' -> interactWithPortal();
+=======
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
                 case 'T' -> world.printMap();
                 case 'H' -> printHelp();
                 case 'Q' -> running = false;
                 default -> System.out.println("Unknown command. Press H to see the instructions.");
             }
         }
+<<<<<<< HEAD
         if (gameWon) System.out.println("\nCHAMPIONS! You defeated Chrysophylax on Depth 2 and won the game!");
         else if (!party.hasLivingHeroes()) AsciiArt.printDefeat();
+=======
+        if (!party.hasLivingHeroes()) AsciiArt.printDefeat();
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         else System.out.println("Thanks for playing Legends: Monsters and Heroes!");
     }
 
@@ -78,6 +96,7 @@ public class GameController {
                 case 2 -> new Sorcerer(name, data.getHeroStats("sorcerer"));
                 default -> new Paladin(name, data.getHeroStats("paladin"));
             };
+<<<<<<< HEAD
             // Give every hero five health and five mana potions.
             for (int p = 0; p < 5; p++) {
                 hero.getInventory().addItem(
@@ -89,6 +108,8 @@ public class GameController {
                 );
             }
 
+=======
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
             party.addHero(hero);
             System.out.println(hero.getName() + " the " + hero.getHeroClass() + " joins the party! Starting gold: " + hero.getGold());
         }
@@ -108,13 +129,18 @@ public class GameController {
             System.out.println("You are in a common area. Scouting for monsters...");
             if (random.nextInt(100) < 25) {
                 System.out.println("An encounter! Monsters are approaching!");
+<<<<<<< HEAD
                 Battle battle = new Battle(party, new MonsterFactory(data, random).createFor(party, depth), input, random);
+=======
+                Battle battle = new Battle(party, new MonsterFactory(data, random).createFor(party), input, random);
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
                 if (!battle.run()) running = false;
             } else {
                 System.out.println("The area is quiet. No monsters appeared this time.");
             }
         } else if (tile instanceof MarketTile) {
             System.out.println("A market is here. Press M to trade.");
+<<<<<<< HEAD
         } else if (tile instanceof PortalTile) {
             interactWithPortal();
         }
@@ -155,6 +181,8 @@ public class GameController {
                 return;
             }
             System.out.println("That portal choice is not available yet.");
+=======
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         }
     }
 
@@ -213,6 +241,7 @@ public class GameController {
     private void usePotionOutsideBattle() {
         Hero hero = chooseHero();
         if (hero == null) return;
+<<<<<<< HEAD
 
         List<Potion> potions = hero.getInventory().getItems().stream()
                 .filter(Potion.class::isInstance)
@@ -254,6 +283,18 @@ public class GameController {
                 potion.getStatType(),
                 restored
         );
+=======
+        List<Potion> potions = hero.getInventory().getItems().stream()
+                .filter(Potion.class::isInstance).map(Potion.class::cast).filter(p -> !p.isConsumed()).toList();
+        if (potions.isEmpty()) { System.out.println("This hero has no potions."); return; }
+        for (int i = 0; i < potions.size(); i++) System.out.println((i + 1) + ". " + potions.get(i));
+        int choice = input.readInt("Choose potion (0 to cancel): ", 0, potions.size());
+        if (choice == 0) return;
+        Potion potion = potions.get(choice - 1);
+        potion.applyTo(hero);
+        hero.getInventory().removeItem(potion);
+        System.out.println(hero.getName() + " used " + potion.getName() + ".");
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     }
 
     private void printTitle() {
@@ -268,11 +309,17 @@ public class GameController {
         System.out.println("E       : Equip a weapon or armor outside battle");
         System.out.println("P       : Use a potion outside battle");
         System.out.println("M       : Enter the market (only on a market tile)");
+<<<<<<< HEAD
         System.out.println("R       : Use a portal (also opens automatically when you step onto one)");
         System.out.println("T       : Display the world map");
         System.out.println("H       : Show these instructions");
         System.out.println("Q       : Quit the game");
         System.out.println("Portal bosses are singular and can be challenged once per depth. Defeat each boss before descending.");
+=======
+        System.out.println("T       : Display the world map");
+        System.out.println("H       : Show these instructions");
+        System.out.println("Q       : Quit the game");
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         System.out.println("In battle, each living hero chooses an action. Option 5 opens that hero class's unique abilities.");
         System.out.println("Sorcerers can use Healing Light to restore 10 HP to one living party member (including themselves).");
         System.out.println("When a monster attacks, guess its hidden number from 1 to 7. A correct guess guarantees a dodge;");

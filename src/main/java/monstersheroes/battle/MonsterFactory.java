@@ -14,6 +14,7 @@ public class MonsterFactory {
     public MonsterFactory(GameData data, Random random) { this.data = data; this.random = random; }
 
     public List<Monster> createFor(Party party) {
+<<<<<<< HEAD
         return createFor(party, 0);
     }
 
@@ -48,4 +49,19 @@ public class MonsterFactory {
             default -> new Dragon(name, level, data.getMonsterStats("dragon"));
         };
     }
+=======
+        int level = party.highestLevel();
+        List<Monster> monsters = new ArrayList<>();
+        for (int i = 1; i <= party.getHeroes().size(); i++) {
+            int type = random.nextInt(3);
+            String suffix = " " + i;
+            switch (type) {
+                case 0 -> monsters.add(new Dragon("Ember Dragon" + suffix, level, data.getMonsterStats("dragon")));
+                case 1 -> monsters.add(new Exoskeleton("Iron Exoskeleton" + suffix, level, data.getMonsterStats("exoskeleton")));
+                default -> monsters.add(new Spirit("Wailing Spirit" + suffix, level, data.getMonsterStats("spirit")));
+            }
+        }
+        return monsters;
+    }
+>>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
 }
