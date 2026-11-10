@@ -12,10 +12,6 @@ import java.util.Set;
 
 /** Stores a hero's skills, money, equipment, and inventory, and provides the actions shared by all hero classes. */
 public abstract class Hero extends Combatant implements Attackable, Levelable {
-<<<<<<< HEAD
-
-=======
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     /** Names the skills that can improve as a hero gains experience. */
     public enum Skill { STRENGTH, DEXTERITY, AGILITY }
 
@@ -40,10 +36,6 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
     public abstract String getHeroClass();
     /** Returns the unique active abilities available to this hero class. */
     public abstract List<HeroAbility> getSpecialAbilities();
-<<<<<<< HEAD
-
-=======
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     public double getStrength() { return strength; }
     public double getDexterity() { return dexterity; }
     public double getAgility() { return agility; }
@@ -51,28 +43,19 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
     public double getMaxMana() { return maxMana; }
     public int getExperience() { return experience; }
     public int getGold() { return gold; }
-<<<<<<< HEAD
-
-=======
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     public Inventory<Item> getInventory() { return inventory; }
     public Weapon getEquippedWeapon() { return equippedWeapon; }
     public Armor getEquippedArmor() { return equippedArmor; }
     public boolean isWeaponUsingBothHands() { return weaponUsesBothHands; }
 
-<<<<<<< HEAD
     public void addGold(int amount) {
         if (amount > 0) gold += amount;
     }
 
-=======
-    public void addGold(int amount) { if (amount > 0) gold += amount; }
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     public boolean spendGold(int amount) {
         if (amount < 0 || gold < amount) return false;
         gold -= amount; return true;
     }
-<<<<<<< HEAD
 
     public boolean hasEnoughMana(int amount) {
         return mana >= amount;
@@ -87,11 +70,6 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
             mana = Math.min(maxMana, mana + amount);
         }
     }
-=======
-    public boolean hasEnoughMana(int amount) { return mana >= amount; }
-    public void spendMana(int amount) { mana = Math.max(0, mana - amount); }
-    public void restoreMana(double amount) { if (amount > 0) mana += amount; }
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
 
     public void increaseStat(StatType stat, int amount) {
         switch (stat) {
@@ -104,11 +82,8 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
     }
 
     public void equipWeapon(Weapon weapon, boolean useBothHands) {
-<<<<<<< HEAD
         if (!weapon.canBeUsedBy(this))
             throw new IllegalArgumentException("Only " + weapon.getAllowedClassesDescription() + " heroes can equip this weapon.");
-=======
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         if (weapon.getLevel() > getLevel()) throw new IllegalArgumentException("Your level is too low for this weapon.");
         if (!weapon.isUsable()) throw new IllegalArgumentException("That weapon is broken.");
         if (weapon.getHandsRequired() == 2 && !useBothHands)
@@ -143,16 +118,6 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
         return Math.max(0.0, Math.min(0.75, agility * 0.002));
     }
 
-<<<<<<< HEAD
-=======
-    public void recoverAtRoundEnd() {
-        if (isAlive()) {
-            hp = Math.ceil(hp * 1.10);
-            mana = Math.ceil(mana * 1.10);
-        }
-    }
-
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     @Override
     public void gainExperience(int amount) {
         if (amount <= 0) return;
@@ -173,12 +138,8 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
         }
         maxMana *= 1.10;
         mana = Math.ceil(mana * 1.10);
-<<<<<<< HEAD
         maxHp = getLevel() * 100.0;
         hp = maxHp;
-=======
-        hp = getLevel() * 100.0;
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         nextLevelThreshold += getLevel() * 10;
         System.out.printf("\n*** %s reached level %d! ***%n", getName(), getLevel());
     }

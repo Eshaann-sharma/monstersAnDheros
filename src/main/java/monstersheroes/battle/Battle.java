@@ -39,14 +39,10 @@ public class Battle {
         AsciiArt.printBattleStart();
         for (Monster monster : monsters) {
             System.out.println("\nA " + monster.getMonsterType() + " appears: " + monster.getName());
-<<<<<<< HEAD
             if (monster.getName().equals("Skeleton King") || monster.getName().equals("Gengar")
                     || monster.getName().equals("Chrysophylax the Crystal Dragon"))
                 AsciiArt.printBoss(monster.getName());
             else AsciiArt.printMonster(monster.getMonsterType());
-=======
-            AsciiArt.printMonster(monster.getMonsterType());
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         }
         showMonsters();
 
@@ -63,11 +59,6 @@ public class Battle {
             takeMonsterTurn();
             if (!party.hasLivingHeroes()) break;
 
-<<<<<<< HEAD
-=======
-            for (Hero hero : party.getLivingHeroes()) hero.recoverAtRoundEnd();
-            System.out.println("\nSurviving heroes recovered 10% of their current HP and MP.");
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
             roundNumber++;
         }
 
@@ -89,35 +80,23 @@ public class Battle {
             switch (choice) {
                 case 1 -> {
                     Monster target = chooseMonster();
-<<<<<<< HEAD
                     if (target != null) { new AttackAction(target).execute(this, hero);
                         actionCompleted = true; }
-=======
-                    if (target != null) { new AttackAction(target).execute(this, hero); actionCompleted = true; }
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
                 }
                 case 2 -> {
                     Spell spell = chooseSpell(hero);
                     if (spell != null) {
                         Monster target = chooseMonster();
-<<<<<<< HEAD
                         if (target != null) {
                             new CastSpellAction(spell, target).execute(this, hero);
                             actionCompleted = true; }
-=======
-                        if (target != null) { new CastSpellAction(spell, target).execute(this, hero); actionCompleted = true; }
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
                     }
                 }
                 case 3 -> {
                     Potion potion = choosePotion(hero);
-<<<<<<< HEAD
                     if (potion != null) {
                         new UsePotionAction(potion).execute(this, hero);
                         actionCompleted = true; }
-=======
-                    if (potion != null) { new UsePotionAction(potion).execute(this, hero); actionCompleted = true; }
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
                 }
                 case 4 -> {
                     Item item = chooseEquipable(hero);
@@ -343,7 +322,6 @@ public class Battle {
     }
 
     public void performPotion(Hero hero, Potion potion) {
-<<<<<<< HEAD
 
         if (!hero.getInventory().contains(potion) || potion.isConsumed()) {
             System.out.println("That potion is no longer available.");
@@ -362,15 +340,6 @@ public class Battle {
                 potion.getStatType(),
                 restored
         );
-=======
-        if (!hero.getInventory().contains(potion) || potion.isConsumed()) {
-            System.out.println("That potion is no longer available."); return;
-        }
-        potion.applyTo(hero);
-        hero.getInventory().removeItem(potion);
-        System.out.printf("%s uses %s. %s increases by %d.%n",
-                hero.getName(), potion.getName(), potion.getStatType(), potion.getEffectAmount());
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
     }
 
     public void performEquip(Hero hero, Item item, boolean bothHands) {

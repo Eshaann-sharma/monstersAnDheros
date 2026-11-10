@@ -12,16 +12,11 @@ public abstract class Monster extends Combatant implements Attackable {
     private double dodgeChance;
 
     protected Monster(String name, int level, GameData.MonsterStats stats) {
-<<<<<<< HEAD
         this(name, level, stats, 1.0, 1.0);
     }
     protected Monster(String name, int level, GameData.MonsterStats stats, double hpMultiplier, double damageMultiplier) {
         super(name, level, level * 100.0 * hpMultiplier);
         attackDamage = stats.damage * level * CombatBalance.MONSTER_DAMAGE_MULTIPLIER * damageMultiplier;
-=======
-        super(name, level, level * 100.0);
-        attackDamage = stats.damage * level * CombatBalance.MONSTER_DAMAGE_MULTIPLIER;
->>>>>>> 1f5ae80801d04726eca9eb129ffed4f68970c7e2
         defense = stats.defense * level;
         dodgeChance = Math.max(0, Math.min(0.75, stats.dodge * 0.01));
     }
