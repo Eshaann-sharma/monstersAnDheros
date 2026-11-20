@@ -15,7 +15,9 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
     /** Names the skills that can improve as a hero gains experience. */
     public enum Skill { STRENGTH, DEXTERITY, AGILITY }
 
+    private static final double TERRAIN_MULTIPLIER = 1.10;
     private double strength, dexterity, agility;
+    private Skill terrainBoost;
     private double mana, maxMana;
     private int experience;
     private int nextLevelThreshold;
@@ -36,9 +38,16 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
     public abstract String getHeroClass();
     /** Returns the unique active abilities available to this hero class. */
     public abstract List<HeroAbility> getSpecialAbilities();
-    public double getStrength() { return strength; }
-    public double getDexterity() { return dexterity; }
-    public double getAgility() { return agility; }
+    public double getStrength() { return applyTerrainBoost(strength, Skill.STRENGTH); }
+    public double getDexterity() { return applyTerrainBoost(dexterity, Skill.DEXTERITY); }
+    public double getAgility() { return applyTerrainBoost(agility, Skill.AGILITY); }
+
+    // replaces the temporary boost without changing the underlying stat
+    public void setTerrainBoost(Skill skill) { terrainBoost = skill; }
+
+    private double applyTerrainBoost(double stat, Skill skill) {
+        return terrainBoost == skill ? stat * TERRAIN_MULTIPLIER : stat;
+    }
     public double getMP() { return mana; }
     public double getMaxMana() { return maxMana; }
     public int getExperience() { return experience; }
@@ -111,11 +120,11 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
         double weaponDamage = equippedWeapon == null || !equippedWeapon.isUsable() ? 0 : equippedWeapon.getDamage();
         if (weaponUsesBothHands && equippedWeapon != null && equippedWeapon.getHandsRequired() == 1)
             weaponDamage *= 1.5;
-        return Math.max(1, (int) Math.round((strength + weaponDamage) * CombatBalance.HERO_WEAPON_DAMAGE_MULTIPLIER));
+        return Math.max(1, (int) Math.round((getStrength() + weaponDamage) * CombatBalance.HERO_WEAPON_DAMAGE_MULTIPLIER));
     }
 
     public double getAgilityDodgeChance() {
-        return Math.max(0.0, Math.min(0.75, agility * 0.002));
+        return Math.max(0.0, Math.min(0.75, getAgility() * 0.002));
     }
 
     @Override
@@ -155,7 +164,7 @@ public abstract class Hero extends Combatant implements Attackable, Levelable {
         System.out.printf("%s the %s | Level %d | HP %.0f | MP %.0f | XP %d | Gold %d%n",
                 getName(), getHeroClass(), getLevel(), hp, mana, experience, gold);
         System.out.printf("   STR %.1f | DEX %.1f | AGI %.1f | Weapon: %s | Armor: %s%n",
-                strength, dexterity, agility,
+                getStrength(), getDexterity(), getAgility(),
                 equippedWeapon == null ? "None" : equippedWeapon.getName(),
                 equippedArmor == null ? "None" : equippedArmor.getName());
     }

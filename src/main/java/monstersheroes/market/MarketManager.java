@@ -23,7 +23,8 @@ public class MarketManager {
         }
     }
 
-    private void tradeWithHero(Market market, Hero hero, InputHandler input) {
+    // opens the trade menu for a hero selected by the caller
+    public void tradeWithHero(Market market, Hero hero, InputHandler input) {
         boolean done = false;
         while (!done) {
             System.out.printf("\n--- %s's Market Visit (Gold: %d) ---%n", hero.getName(), hero.getGold());
