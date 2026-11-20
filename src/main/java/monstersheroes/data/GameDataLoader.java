@@ -49,7 +49,7 @@ public class GameDataLoader {
         try {
             return Files.readAllLines(file).stream()
                     .map(String::trim)
-                    .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                    .filter(line -> !line.isEmpty() && !line.startsWith("#") && !line.startsWith("//"))
                     .toList();
         } catch (IOException e) {
             throw new IllegalStateException("Could not read required game data file: " + file.toAbsolutePath(), e);

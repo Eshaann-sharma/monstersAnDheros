@@ -1,17 +1,14 @@
 package monstersheroes;
 
-import monstersheroes.battle.Battle;
-import monstersheroes.battle.MonsterFactory;
 import monstersheroes.characters.*;
 import monstersheroes.data.GameData;
-import monstersheroes.data.GameDataLoader;
 import monstersheroes.items.*;
+import monstersheroes.market.Market;
 import monstersheroes.market.MarketManager;
 import monstersheroes.party.Party;
 import monstersheroes.util.InputHandler;
 import monstersheroes.util.AsciiArt;
 import monstersheroes.world.*;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,9 +22,10 @@ public class GameController {
     private World world;
     private boolean running = true;
     private boolean gameWon;
-    private int depth;
-    private final boolean[] bossChallenged = new boolean[3];
-    private final boolean[] bossDefeated = new boolean[3];
+    // store the active hero as a zero-based party index
+    private int activeHero;
+    private final Set<Integer> heroesWhoActed = new HashSet<>();
+    private Market nexusMarket;
 
     public GameController(InputHandler input, GameData data) {
         this.input = input; this.data = data;
@@ -36,13 +34,15 @@ public class GameController {
     public void start() {
         printTitle();
         createParty();
-        world = new World(8, data, random, depth);
+        // assign starting positions and share one market across the heroes
+        world = new World(random, chooseStartingLanes());
+        nexusMarket = new Market(data, random, new HashSet<>());
         System.out.println("\nYour party enters the world. Good luck, heroes!");
         world.printMap();
         printHelp();
 
         while (running && party.hasLivingHeroes()) {
-            char command = input.readCommand("\nCommand (W/A/S/D, I, V, E, P, M, R, T, H, Q): ");
+            char command = input.readCommand("\nH" + (activeHero + 1) + " (W/A/S/D, C, X, F, I, V, E, P, M, T, H, Q): ");
             switch (command) {
                 case 'W' -> move(0, -1);
                 case 'A' -> move(-1, 0);
@@ -53,20 +53,24 @@ public class GameController {
                 case 'E' -> equipOutsideBattle();
                 case 'P' -> usePotionOutsideBattle();
                 case 'M' -> enterMarket();
-                case 'R' -> interactWithPortal();
+                case 'C' -> clearObstacle();
+                case 'X' -> finishBoardAction();
+                case 'F' -> selectActiveHero();
                 case 'T' -> world.printMap();
                 case 'H' -> printHelp();
                 case 'Q' -> running = false;
                 default -> System.out.println("Unknown command. Press H to see the instructions.");
             }
         }
-        if (gameWon) System.out.println("\nCHAMPIONS! You defeated Chrysophylax on Depth 2 and won the game!");
+        // report victory after the active hero reaches the enemy nexus
+        if (gameWon) System.out.println("\nVictory! A hero reached the monsters' Nexus.");
         else if (!party.hasLivingHeroes()) AsciiArt.printDefeat();
-        else System.out.println("Thanks for playing Legends: Monsters and Heroes!");
+        else System.out.println("Thanks for playing Legends of Valor!");
     }
 
     private void createParty() {
-        int count = input.readInt("How many heroes will join your party? (1-3): ", 1, Party.MAX_SIZE);
+        // create one hero for each starting lane
+        int count = Party.MAX_SIZE;
         for (int i = 1; i <= count; i++) {
             System.out.println("\nCreate hero " + i + " of " + count);
             String name;
@@ -94,77 +98,92 @@ public class GameController {
         }
     }
 
-    private void move(int dx, int dy) {
-        if (!world.move(dx, dy)) {
-            // Keep the current position visible even when a movement is blocked.
-            world.printMap();
-            return;
-        }
-
-        // Redraw immediately after every successful move, before resolving the tile.
-        world.printMap();
-        Tile tile = world.getCurrentTile();
-        if (tile instanceof CommonTile) {
-            System.out.println("You are in a common area. Scouting for monsters...");
-            if (random.nextInt(100) < 25) {
-                System.out.println("An encounter! Monsters are approaching!");
-                Battle battle = new Battle(party, new MonsterFactory(data, random).createFor(party, depth), input, random);
-                if (!battle.run()) running = false;
-            } else {
-                System.out.println("The area is quiet. No monsters appeared this time.");
-            }
-        } else if (tile instanceof MarketTile) {
-            System.out.println("A market is here. Press M to trade.");
-        } else if (tile instanceof PortalTile) {
-            interactWithPortal();
-        }
-    }
-
-    private void interactWithPortal() {
-        if (!(world.getCurrentTile() instanceof PortalTile)) {
-            System.out.println("The party must stand on a portal tile to use it.");
-            return;
-        }
-        while (running && party.hasLivingHeroes()) {
-            System.out.println("\n========== DEPTH " + depth + " PORTAL ==========");
-            if (bossChallenged[depth]) {
-                System.out.println(bossDefeated[depth] ? "The floor boss has been defeated." : "The floor boss has already been challenged.");
-            } else System.out.println("1. Challenge this depth's boss");
-            System.out.println("2. Explore this depth");
-            if (bossDefeated[depth] && depth < 2) System.out.println("3. Descend to depth " + (depth + 1) + " (one way)");
-            if (depth == 2 && bossDefeated[depth]) return;
-            int choice = input.readInt("Choose: ", 1, 3);
-            if (choice == 1 && !bossChallenged[depth]) {
-                bossChallenged[depth] = true;
-                Monster boss = new MonsterFactory(data, random).createBoss(party, depth);
-                boolean victory = new Battle(party, List.of(boss), input, random).run();
-                if (!party.hasLivingHeroes()) { running = false; return; }
-                if (!victory) { running = false; return; }
-                if (victory) {
-                    bossDefeated[depth] = true;
-                    if (depth == 2) { gameWon = true; running = false; return; }
+    // assigns a distinct starting lane to each hero in party order
+    private List<Integer> chooseStartingLanes() {
+        List<Integer> lanes = new ArrayList<>();
+        for (int hero = 1; hero <= Party.MAX_SIZE; hero++) {
+            while (true) {
+                int lane = input.readInt("Starting lane for H" + hero + " (1=left, 2=middle, 3=right): ",
+                        1, World.LANE_COUNT) - 1;
+                if (!lanes.contains(lane)) {
+                    lanes.add(lane);
+                    break;
                 }
-                continue;
+                System.out.println("Another hero is already assigned to that lane.");
             }
-            if (choice == 2) return;
-            if (choice == 3 && bossDefeated[depth] && depth < 2) {
-                depth++;
-                world = new World(8, data, random, depth);
-                System.out.println("The portal seals behind you. The party cannot return to earlier depths.");
-                world.printMap();
-                return;
-            }
-            System.out.println("That portal choice is not available yet.");
         }
+        return lanes;
     }
 
+    // moves the active hero and checks whether the move wins the game
+    private void move(int dx, int dy) {
+        if (!world.moveHero(activeHero, dx, dy)) return;
+        Tile tile = world.getHeroTile(activeHero);
+        Hero hero = party.getHeroes().get(activeHero);
+        Hero.Skill boost = tile.getBoostedSkill();
+        hero.setTerrainBoost(boost);
+        world.printMap();
+        if (boost != null) {
+            System.out.printf("%s gains +10%% %s while on %s.%n",
+                    hero.getName(), boost.name().toLowerCase(Locale.ROOT), tile.getDescription());
+        }
+        if (tile instanceof NexusTile nexus && !nexus.isHeroNexus()) {
+            gameWon = true;
+            running = false;
+            return;
+        }
+        finishBoardAction();
+    }
+
+    // searches only the selected neighboring space for an obstacle
+    private void clearObstacle() {
+        char direction = input.readCommand("Clear in which direction (W/A/S/D, X to cancel): ");
+        boolean cleared = switch (direction) {
+            case 'W' -> world.clearObstacle(activeHero, 0, -1);
+            case 'A' -> world.clearObstacle(activeHero, -1, 0);
+            case 'S' -> world.clearObstacle(activeHero, 0, 1);
+            case 'D' -> world.clearObstacle(activeHero, 1, 0);
+            default -> false;
+        };
+        if (direction == 'X') return;
+        if (!cleared) {
+            System.out.println("Choose a direction with an adjacent obstacle.");
+            return;
+        }
+        System.out.println("Obstacle cleared. The space is now plain.");
+        world.printMap();
+        finishBoardAction();
+    }
+
+    // advances to the next hero who has a board action left this round
+    private void finishBoardAction() {
+        heroesWhoActed.add(activeHero);
+        if (heroesWhoActed.size() == party.getHeroes().size()) {
+            heroesWhoActed.clear();
+        }
+        do {
+            activeHero = (activeHero + 1) % party.getHeroes().size();
+        } while (heroesWhoActed.contains(activeHero));
+    }
+
+    // allows switching to a hero who still has a board action
+    private void selectActiveHero() {
+        int selected = input.readInt("Control hero (1-3): ", 1, Party.MAX_SIZE) - 1;
+        if (heroesWhoActed.contains(selected)) {
+            System.out.println("That hero already used their board action this round.");
+            return;
+        }
+        activeHero = selected;
+    }
+
+    // opens the market for the active hero while at the heroes' nexus
     private void enterMarket() {
-        if (!(world.getCurrentTile() instanceof MarketTile marketTile)) {
-            System.out.println("You can only enter a market when the party is standing on a market tile.");
+        if (!(world.getHeroTile(activeHero) instanceof NexusTile nexus) || !nexus.isHeroNexus()) {
+            System.out.println("The active hero must be at the heroes' Nexus to trade.");
             return;
         }
         AsciiArt.printMarket();
-        marketManager.enter(marketTile.getMarket(), party, input);
+        marketManager.tradeWithHero(nexusMarket, party.getHeroes().get(activeHero), input);
     }
 
     private Hero chooseHero() {
@@ -260,24 +279,21 @@ public class GameController {
         AsciiArt.printTitle();
     }
 
+    // lists the current board controls and inventory commands
     private void printHelp() {
         System.out.println("\nHOW TO PLAY");
-        System.out.println("W/A/S/D : Move up/left/down/right");
+        System.out.println("W/A/S/D : Move the active hero up/left/down/right");
+        System.out.println("C       : Clear an adjacent obstacle using this hero's board action");
+        System.out.println("X       : Pass this hero's board action");
+        System.out.println("F       : Select a hero who has a board action left");
+        System.out.println("Bush +10% DEX, Cave +10% AGI, Koulou +10% STR while occupied");
         System.out.println("I       : Show party statistics");
         System.out.println("V       : View hero inventories");
-        System.out.println("E       : Equip a weapon or armor outside battle");
-        System.out.println("P       : Use a potion outside battle");
-        System.out.println("M       : Enter the market (only on a market tile)");
-        System.out.println("R       : Use a portal (also opens automatically when you step onto one)");
-        System.out.println("T       : Display the world map");
+        System.out.println("E       : Equip a weapon or armor");
+        System.out.println("P       : Use a potion");
+        System.out.println("M       : Trade at the heroes' Nexus");
+        System.out.println("T       : Display the board");
         System.out.println("H       : Show these instructions");
         System.out.println("Q       : Quit the game");
-        System.out.println("Portal bosses are singular and can be challenged once per depth. Defeat each boss before descending.");
-        System.out.println("In battle, each living hero chooses an action. Option 5 opens that hero class's unique abilities.");
-        System.out.println("Sorcerers can use Healing Light to restore 10 HP to one living party member (including themselves).");
-        System.out.println("When a monster attacks, guess its hidden number from 1 to 7. A correct guess guarantees a dodge;");
-        System.out.println("if incorrect, the hero still has their normal agility-based dodge chance.");
-        System.out.println("Hero and monster attacks have a 15% critical-hit chance for double damage.");
-        System.out.println("Critical hits, monsters, dodges, markets, and the title screen use ASCII art.");
     }
 }
