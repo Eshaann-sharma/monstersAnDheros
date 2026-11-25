@@ -1,0 +1,4 @@
+# strength,dexterity,agility,mana — values loaded for each new game
+warrior=120,70,110,100
+sorcerer=70,130,100,140
+paladin=110,110,80,110
