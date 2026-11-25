@@ -25,8 +25,259 @@ javac --release 17 -encoding UTF-8 -d out @sources.txt
 java -ea -cp out monstersheroes.legendsofvalor.FeatureSmokeTest
 java -cp out monstersheroes.Main
 ```
+## Architecture & Class Diagram
 
-The smoke test covers the repaired item data, exact 9-by-8 board bounds, random terrain, movement and blocking, terrain bonuses, teleport and recall, special-attack MP costs, attack range, monster turns and spawning, regeneration and respawn, and both Nexus win conditions. The project has no external dependencies or JUnit requirement.
+```mermaid
+classDiagram
+    direction TB
+
+    %% Application entry and mode controllers
+    class Main
+    class InputHandler["InputHandler (shared)"]
+    class GameDataLoader
+    class GameData["GameData (shared)"]
+    class HeroStats["GameData.HeroStats (shared)"]
+    class MonsterStats["GameData.MonsterStats (shared)"]
+    class ItemDefinition["GameData.ItemDefinition (shared)"]
+    class GameController
+    class ValorController
+
+    %% Shared game model and characters
+    class Party["Party (shared)"]
+    class Combatant["Combatant (shared)"] {
+        <<abstract>>
+    }
+    class Hero["Hero (shared)"] {
+        <<abstract>>
+    }
+    class Monster["Monster (shared)"] {
+        <<abstract>>
+    }
+    class Warrior["Warrior (shared)"]
+    class Sorcerer["Sorcerer (shared)"]
+    class Paladin["Paladin (shared)"]
+    class Dragon["Dragon (shared)"]
+    class Exoskeleton["Exoskeleton (shared)"]
+    class Spirit["Spirit (shared)"]
+    class HeroSkill["Hero.Skill (shared)"] {
+        <<enumeration>>
+    }
+    class MonsterFactory["MonsterFactory (shared)"]
+    class CombatBalance["CombatBalance (shared)"]
+
+    %% Shared items, inventory, and markets
+    class Inventory["Inventory (shared)"]
+    class Item["Item (shared)"] {
+        <<abstract>>
+    }
+    class Weapon["Weapon (shared)"]
+    class Armor["Armor (shared)"]
+    class Potion["Potion (shared)"]
+    class Spell["Spell (shared)"] {
+        <<abstract>>
+    }
+    class FireSpell["FireSpell (shared)"]
+    class IceSpell["IceSpell (shared)"]
+    class LightningSpell["LightningSpell (shared)"]
+    class StatType["StatType (shared)"] {
+        <<enumeration>>
+    }
+    class Market["Market (shared)"]
+    class MarketManager["MarketManager (shared)"]
+
+    %% Shared contracts used by both modes
+    class Attackable["Attackable (shared)"] {
+        <<interface>>
+    }
+    class Levelable["Levelable (shared)"] {
+        <<interface>>
+    }
+    class Equipable["Equipable (shared)"] {
+        <<interface>>
+    }
+    class Consumable["Consumable (shared)"] {
+        <<interface>>
+    }
+
+    %% Original adventure world and battle system
+    class World
+    class Tile {
+        <<abstract>>
+    }
+    class CommonTile
+    class InaccessibleTile
+    class MarketTile
+    class PortalTile
+    class Battle
+    class BattleAction {
+        <<interface>>
+    }
+    class AttackAction
+    class CastSpellAction
+    class EquipAction
+    class UseHeroAbilityAction
+    class UsePotionAction
+    class DodgeRule {
+        <<interface>>
+    }
+    class NumberGuessDodge
+    class HeroAbility {
+        <<interface>>
+    }
+    class AbstractHeroAbility {
+        <<abstract>>
+    }
+    class HealingAbility
+    class SpecialAttackAbility
+    class DamageStyle["SpecialAttackAbility.DamageStyle"] {
+        <<enumeration>>
+    }
+    class Debuff["SpecialAttackAbility.Debuff"]
+    class AsciiArt
+
+    %% Legends of Valor board and game state
+    class ValorGame
+    class ValorOutcome["ValorGame.Outcome"] {
+        <<enumeration>>
+    }
+    class PendingSpawn["ValorGame.PendingSpawn"] {
+        <<record>>
+    }
+    class ValorBoard
+    class ValorPosition
+    class Lane {
+        <<enumeration>>
+    }
+    class Terrain {
+        <<enumeration>>
+    }
+    class ValorHeroUnit
+    class ValorMonsterUnit
+
+    %% Test support
+    class FeatureSmokeTest
+
+    Main --> InputHandler : menu input
+    Main --> GameDataLoader : loads data once
+    Main --> GameController : launches original game
+    Main --> ValorController : launches Valor
+    GameDataLoader --> GameData : creates
+    GameData *-- HeroStats
+    GameData *-- MonsterStats
+    GameData *-- ItemDefinition
+
+    GameController --> InputHandler
+    GameController --> GameData
+    GameController o-- Party
+    GameController --> World
+    GameController --> Battle
+    GameController --> MonsterFactory
+    GameController --> MarketManager
+    GameController --> AsciiArt
+
+    ValorController --> InputHandler
+    ValorController --> GameData
+    ValorController --> ValorGame
+    ValorController --> MarketManager
+    ValorController o-- Market
+    ValorController ..> Hero : creates chosen classes
+    ValorController ..> Potion : grants starting items
+    ValorController ..> StatType
+
+    Party o-- Hero : contains
+    Combatant <|-- Hero
+    Combatant <|-- Monster
+    Hero <|-- Warrior
+    Hero <|-- Sorcerer
+    Hero <|-- Paladin
+    Monster <|-- Dragon
+    Monster <|-- Exoskeleton
+    Monster <|-- Spirit
+    Hero ..> HeroSkill
+    Hero ..> HeroAbility : exposes classic abilities
+    Hero ..|> Attackable
+    Hero ..|> Levelable
+    Monster ..|> Attackable
+    MonsterFactory ..> GameData
+    MonsterFactory ..> Party
+    MonsterFactory ..> Monster
+    MonsterFactory ..> Dragon
+    MonsterFactory ..> Exoskeleton
+    MonsterFactory ..> Spirit
+
+    Hero *-- Inventory : owns
+    Inventory o-- Item : stores
+    Item <|-- Weapon
+    Item <|-- Armor
+    Item <|-- Potion
+    Item <|-- Spell
+    Spell <|-- FireSpell
+    Spell <|-- IceSpell
+    Spell <|-- LightningSpell
+    Weapon ..|> Equipable
+    Armor ..|> Equipable
+    Potion ..|> Consumable
+    Spell ..|> Consumable
+    Potion ..> StatType
+    MarketManager --> Market : trades
+    MarketManager --> Party
+    MarketManager --> Hero : updates gold and inventory
+    MarketManager --> InputHandler
+    Market --> GameData : builds stock from definitions
+
+    World *-- Tile : map cells
+    Tile <|-- CommonTile
+    Tile <|-- InaccessibleTile
+    Tile <|-- MarketTile
+    Tile <|-- PortalTile
+    World --> GameData
+    World --> Market
+    MarketTile --> Market
+
+    Battle --> Party
+    Battle --> InputHandler
+    Battle --> MonsterFactory
+    Battle --> DodgeRule
+    DodgeRule <|.. NumberGuessDodge
+    Battle ..> BattleAction : resolves actions
+    Battle ..> HeroAbility
+    Battle ..> CombatBalance
+    Battle --> AsciiArt
+    BattleAction <|.. AttackAction
+    BattleAction <|.. CastSpellAction
+    BattleAction <|.. EquipAction
+    BattleAction <|.. UseHeroAbilityAction
+    BattleAction <|.. UsePotionAction
+    AttackAction ..> Hero
+    AttackAction ..> Monster
+    CastSpellAction ..> Spell
+    CastSpellAction ..> Hero
+    CastSpellAction ..> Monster
+    EquipAction ..> Item
+    UseHeroAbilityAction ..> HeroAbility
+    UsePotionAction ..> Potion
+    HeroAbility <|.. AbstractHeroAbility
+    AbstractHeroAbility <|-- HealingAbility
+    AbstractHeroAbility <|-- SpecialAttackAbility
+    SpecialAttackAbility ..> DamageStyle
+    SpecialAttackAbility ..> Debuff
+
+    ValorGame *-- ValorBoard : owns 9 by 8 board
+    ValorGame o-- Party
+    ValorGame o-- ValorHeroUnit : manages heroes
+    ValorGame o-- ValorMonsterUnit : manages monsters
+    ValorGame ..> MonsterFactory : creates waves
+    ValorGame ..> CombatBalance
+    ValorGame ..> ValorOutcome
+    ValorGame *-- PendingSpawn
+    ValorBoard ..> Terrain : assigns cells
+    ValorBoard ..> Lane : lays out lanes
+    ValorPosition ..> Lane : derives lane from column
+    ValorHeroUnit --> Hero : wraps existing hero
+    ValorHeroUnit --> ValorPosition : home and current cell
+    ValorMonsterUnit --> Monster : wraps existing monster
+    ValorMonsterUnit --> ValorPosition : current cell
+```
 
 ## Legends of Valor
 
@@ -41,16 +292,6 @@ Legends of Valor is a separate game mode implemented under `src/main/java/monste
 - Attack opens a choice between Basic Attack and a class special. Each class special costs 20 MP; a hero without enough MP cannot use it. Warriors' Spin Attack strikes every monster in normal attack range. Sorcerers' Fire Helper targets one monster in another lane within one row above or below, or on the same row. Paladins' Holy Light increases their attack and spell damage by 50% for the next two full rounds.
 - Choose Easy, Medium, or Hard for a new monster wave every 6, 4, or 2 rounds. New monsters match the party's highest level. Defeating a monster grants every hero 2 XP and 100 gold per monster level, matching the existing Monsters and Heroes battle rewards. Section IV of the assignment gives different reward rates as examples; this build follows the existing project's carry-over reward rates.
 - A hero wins by reaching any monsters' Nexus cell on row 0. Monsters win immediately when any monster reaches the heroes' Nexus on row 8.
-
-## Manual verification checklist
-
-1. Start the program and choose **1**. Create one hero, confirm the original exploration map and controls appear, then quit with `Q` and confirm the main menu returns. Choose **3** there to exit.
-2. Start again and choose **2**. Create three heroes, assign lanes, choose a difficulty, and verify the board has exactly eight columns, two divider columns, both Nexus rows, the center market row, terrain, and all six units. Quit with `0` and confirm the main menu returns.
-3. Move within a lane, try to cross a divider, and try a diagonal move. Confirm only a legal orthogonal move consumes the turn.
-4. Enter Bush, Cave, or Koulou and confirm its stat bonus disappears after leaving. Remove an adjacent obstacle and move through the cleared Plain space on a later turn.
-5. Use a potion, equip an item, choose Basic or Class Special after Attack, and cast a spell only on an in-range monster. Check that Spin Attack, cross-lane Fire Helper, and Paladin Holy Light each cost 20 MP and cannot be used without enough mana. Teleport beside a teammate and recall. Trade at the center market row and confirm the action remains available.
-6. Pass a hero turn and confirm monsters attack in range or advance south. Continue to a configured spawn round; verify the new wave appears. Confirm survivors regenerate and fallen heroes respawn.
-7. For a victory check, move a hero to row 0. For a loss check, allow a monster to reach row 8.
 
 ## Controls
 
